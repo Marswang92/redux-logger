@@ -64,7 +64,7 @@ const store = createStore(
 
   const logBuffer = [];
 
-  return ({ getState }) => next => (action) => {
+  return ({ getState }) => next => (action, originalActions) => {
     // Exit early if predicate function returns 'false'
     if (typeof predicate === 'function' && !predicate(getState, action)) {
       return next(action);
@@ -78,6 +78,10 @@ const store = createStore(
     logEntry.startedTime = new Date();
     logEntry.prevState = stateTransformer(getState());
     logEntry.action = action;
+
+    if (originalActions) {
+      logEntry.originalActions = originalActions;
+    }
 
     let returnedValue;
     if (logErrors) {

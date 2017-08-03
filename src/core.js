@@ -25,10 +25,11 @@ function getLogLevel(level, action, payload, type) {
 function defaultTitleFormatter(options) {
   const { timestamp, duration } = options;
 
-  return (action, time, took) => {
-    const parts = ['action'];
+  return (action, time, took, originalActions) => {
+    const parts = ['action %c'];
 
-    parts.push(`%c${String(action.type)}`);
+    if (originalActions && originalActions.length) parts.push(originalActions.map(x => String(x.type)).join(' >> '), ' >> ')
+    parts.push(String(action.type));
     if (timestamp) parts.push(`%c@ ${time}`);
     if (duration) parts.push(`%c(in ${took.toFixed(2)} ms)`);
 
@@ -50,7 +51,7 @@ function printBuffer(buffer, options) {
   const isUsingDefaultFormatter = typeof options.titleFormatter === 'undefined';
 
   buffer.forEach((logEntry, key) => {
-    const { started, startedTime, action, prevState, error } = logEntry;
+    const { started, startedTime, action, prevState, error, originalActions } = logEntry;
     let { took, nextState } = logEntry;
     const nextEntry = buffer[key + 1];
 
@@ -71,7 +72,7 @@ function printBuffer(buffer, options) {
     headerCSS.push(titleCSS);
     if (options.timestamp) headerCSS.push('color: gray; font-weight: lighter;');
     if (options.duration) headerCSS.push('color: gray; font-weight: lighter;');
-    const title = titleFormatter(formattedAction, formattedTime, took);
+    const title = titleFormatter(formattedAction, formattedTime, took, originalActions);
 
     // Render
     try {
